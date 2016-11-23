@@ -34,9 +34,10 @@
         :double-strike (s/tuple ::strike ::strike (s/or :ball ::ball :strike ::strike))))
 
 (s/def ::frames
-  (s/and #(<= (count %) 10) ;; There is a maximum of 10 frames to a scorecard
-         (s/cat :frame       (s/* ::frame)
-                :final-frame (s/? ::final-frame))))
+  (s/or :incomplete (s/coll-of ::frame :kind vector? :min-count 0 :max-count 9)
+        :complete   (s/and (s/cat :frame (s/* ::frame)
+                                  :final-frame (s/? ::final-frame))
+                           #(= 10 (count %)))))
 
 (s/def ::score
   (s/and number? #(<= % 300)))
@@ -96,7 +97,6 @@
   "Determines if a game is complete - if so, provide the final score"
   [scorecard]
   {:pre [(s/valid? ::scorecard scorecard)]}
-
   (if (= 10 (-> scorecard :frames count))
     (:score scorecard)
     (throw (IllegalStateException. "Game incomplete"))))
