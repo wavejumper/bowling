@@ -2,7 +2,9 @@
   (:require [clojure.test :refer :all]
             [bowling.core :refer :all]))
 
-;; I could use property based testing with core.spec, but I'll keep it simple...
+;; I could use property based testing with core.spec, but I'll keep it simple!
+
+(def ^:private strike [10 0])
 
 (deftest score-frame-test
   ;; Wikipedia example of a strike
@@ -26,11 +28,80 @@
          {:score  14
           :frames [[4 3] [4 3]]}))
 
-  ;; Handle the 'final frame' case(s)
+  ;; Strike 'bonus' example from wikipedia
+  (is (= (-> (scorecard)
+             (score-frame strike)
+             (score-frame [3 6])
+             :score)
+         28))
 
+  ;; Double 'pinfall' example from wikipedia
+  (is (= (-> (scorecard)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame [9 0])
+             :score)
+         57))
+
+  ;; Turkey's pinfall from wikipedia
+  (is (= (-> (scorecard)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame [0 9])
+             :score)
+         78))
+
+  ;; Test bonus logic...
+  ;; Check the 'perfect game' equals 300
+  (is (= (-> (scorecard)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame [strike strike strike])
+             :score)
+         300))
+
+  (is (= (-> (scorecard)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame [[7 3] [10 0]])
+             :score)
+         277))
+
+  (is (= (-> (scorecard)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame strike)
+             (score-frame [[6 0]])
+             :score)
+         258))
 
   ;; Test bad states
 
-  )
+  ;; Test bad scorecard input(s)
+  (is (thrown? AssertionError (score-frame nil strike)))
+  (is (thrown? AssertionError (score-frame {:score "1" :frames []} strike)))
 
-;; (run-tests)
+  (let [bad-frame [1]]
+    (is (thrown? AssertionError (score-frame {:score 0 :frames bad-frame} strike)))
+    (is (thrown? AssertionError (score-frame (scorecard) bad-frame)))))
