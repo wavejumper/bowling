@@ -5,7 +5,7 @@
 ;; I could use property based testing with core.spec, but I'll keep it simple...
 
 (deftest score-frame-test
-  ;; Wikipedia example of strike
+  ;; Wikipedia example of a strike
   (is (= (score-frame {:score  10
                        :frames [[10 0]]}
                       [3 6])
@@ -24,6 +24,13 @@
                        :frames [[4 3]]}
                       [4 3])
          {:score  14
-          :frames [[4 3] [4 3]]})))
+          :frames [[4 3] [4 3]]}))
+
+  ;; Handle the 'final frame' case(s)
+
+
+  ;; Test bad states
+
+  )
 
 ;; (run-tests)
