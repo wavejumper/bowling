@@ -31,35 +31,51 @@
         (s/tuple ::spare (s/or ::ball ::strike))
         (s/tuple ::strike ::strike (s/or ::ball ::strike))))
 
-(s/def ::scorecard
+(s/def ::frames
   (s/and (s/cat :frame       (s/* ::ball)
                 :final-frame (s/? ::final-frame)) ;; The final frame is a special case
 
          ;; There is a maximum of 10 frames to a scorecard
          #(<= (count %) 10)))
 
+(s/def ::score
+  (s/and number? #(<= % 300)))
+
+(s/def ::scoreboard
+  (s/keys :req-un [::score ::frames]))
+
 ;; -- impl ----------------------------------------------------------------------------------------
 
 ;; Create an empty score card
 (defn scorecard []
-  [])
+  {:score  0
+   :frames []})
 
 ;; Given a score card, score a frame
+
+(defn- score-strike [score frame])
+
+(defn- score-spare [score frame])
+
+;; I'm going to deviate a little and return the next state of the scorecard (with a :score key) instead
+;; of returning just the score
 (defn score-frame [card frame]
-  (let [prev-frame (last card)]
+  (let [prev-frame (last card)
+        next-card  (update card :frames conj frame)]
     (cond
       (s/valid? ::strike prev-frame)
-      nil
+      (update next-card :score #(score-strike % frame))
 
       (s/valid? ::spare  prev-frame)
-      nil
+      (update next-card :score #(score-spare % frame))
 
       (s/valid? ::ball prev-frame)
-      (apply + frame)
+      (update next-card :scpre #(+ % (apply + frame)))
 
       :else (throw (IllegalArgumentException. "")))))
 
 ;; Determine if a game is complete - if so, provide the final score
 (defn score-game [card]
-  
-  (throw (IllegalStateException. "Game incomplete")))
+  (if (= 10 (count card))
+    (:score card)
+    (throw (IllegalStateException. "Game incomplete"))))
